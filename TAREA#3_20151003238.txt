@@ -1,0 +1,194 @@
+set SERVEROUTPUT on;
+create or replace function CREAR_REGION (nombreRegion REGIONS.REGION_NAME%TYPE)
+return number
+is
+    numeroRegion number := 1;
+    type region is table of REGIONS.REGION_NAME%TYPE INDEX BY PLS_INTEGER;
+    reg region;
+    
+    begin
+        reg(numeroRegion) := nombreRegion;
+        return numeroRegion;
+    end; 
+    
+--EJERCICIO 2
+
+set SERVEROUTPUT on;
+declare
+    raise_aplication_error exception;
+    nombre employees.first_name%type;
+    apellido employees.last_name%type;
+    salario employees.salary%type;
+    cursor empleados is
+        select FIRST_NAME, LAST_NAME, SALARY from employees
+        --where (first_name <> 'Steven' and last_name <> 'King')
+        ;
+begin
+    open empleados;
+        loop
+        
+            if (nombre = 'Steven' and apellido = 'King') then
+                raise raise_aplication_error;
+                
+            else 
+                dbms_output.put_line(nombre || ' ' || apellido || ' ' || salario);
+                fetch empleados into nombre, apellido, salario;
+                
+            end if;
+            exit when empleados%notfound;
+        end loop;
+    close empleados;
+exception
+    when raise_aplication_error then
+        dbms_output.put_line('No se permite ver el sueldo del Jefe en la consulta');
+        dbms_output.put_line('Por favor excluyalo de la misma');
+end;
+
+--EJERCICIO 3
+set SERVEROUTPUT on;
+DECLARE
+    numEmp employees.department_id%type;
+    cursor nEmp (depID employees.department_id%type)
+    is select count (employee_id) from employees where depID = department_id;
+    
+BEGIN
+    open nEmp(90); --90 es un ID de departamento
+    loop
+        fetch nEmp into numEmp;
+        exit when nEmp%notfound;
+        dbms_output.put_line(numEmp);
+    end loop;
+    close nEmp;
+END;
+
+--EJERCICIO 4
+
+set SERVEROUTPUT on;
+declare
+    raise_aplication_error exception;
+    nombre employees.first_name%type;
+    apellido employees.last_name%type;
+    salario employees.salary%type;
+    cursor empleados is
+        select FIRST_NAME, LAST_NAME, SALARY from employees;
+begin
+    open empleados;
+        loop
+        
+            if (salario > 8000) then
+                salario := salario + salario*0.02;
+            elsif (salario < 800 ) then 
+                salario := salario + salario*0.03;
+            else
+                salario := salario;
+            end if;
+            
+            dbms_output.put_line(nombre || ' ' || apellido || ' ' || salario);
+            fetch empleados into nombre, apellido, salario;
+            exit when empleados%notfound;
+        end loop;
+    close empleados;
+exception
+    when raise_aplication_error then
+        dbms_output.put_line('No se permite ver el sueldo del Jefe en la consulta');
+        dbms_output.put_line('Por favor excluyalo de la misma');
+end;
+
+--EJERCICIO 5
+
+set SERVEROUTPUT on;
+create or replace procedure calculadora
+as
+    opcion char(1);
+    A number;
+    B number;
+    begin
+        dbms_output.put_line('Bienvenido a la APP de Calculadora');
+        dbms_output.put_line('Por favor seleccione la operacion basica a realizar');
+        dbms_output.put_line('(1) = Suma de 2 digitos (A + B)');
+        dbms_output.put_line('(2) = Resta de 2 digitos (A - B)');
+        dbms_output.put_line('(3) = Multiplicacion entre 2 digitos (AB)');
+        dbms_output.put_line('(4) = Division entre 2 digitos (A/B)');
+        opcion := &Escriba_una_de_las_opciones_disponibles;
+        A := &Valor_de_A;
+        B := &Valor_de_B;
+        
+        if opcion = '1' then
+            dbms_output.put_line('La suma de A + B es = ' || (A+B));
+        elsif opcion = '2' then
+            dbms_output.put_line('La resta de A - B es = ' || (A-B));
+        elsif opcion = '3' then
+            dbms_output.put_line('La multiplicacion AB es = ' || (A*B));
+        elsif opcion = '4' then
+            if B = 0 then
+                dbms_output.put_line('Una division entre cero esta indeterminada');
+            else
+                dbms_output.put_line('La division de A / B es = ' || (A/B));
+            end if;
+        else
+            dbms_output.put_line('Acaba de ingresar una opcion invalida');
+        end if;
+    end calculadora;
+    
+    execute calculadora;
+    
+--EJERCICIO 6
+
+--SCRIPT
+CREATE TABLE EMPLOYEES_COPIA (
+    EMPLOYEE_ID NUMBER(6,0) PRIMARY KEY,
+    FIRST_NAME VARCHAR2(20 BYTE),
+    LAST_NAME VARCHAR2(25 BYTE),
+    EMAIL VARCHAR2(25 BYTE),
+    PHONE_NUMBER VARCHAR2(20 BYTE),
+    HIRE_DATE DATE,
+    JOB_ID VARCHAR2(10 BYTE),
+    SALARY NUMBER(8,2),
+    COMMISSION_PCT NUMBER(2,2),
+    MANAGER_ID NUMBER(6,0),
+    DEPARTMENT_ID NUMBER(4,0)
+    );
+--FIN DE SCRIPT
+
+create or replace procedure rellenador
+as
+    empID employees.employee_id%type;
+    nombre employees.first_name%type;
+    apellido employees.last_name%type;
+    correo employees.email%type;
+    telefono employees.phone_number%type;
+    fechaContratacion employees.hire_date%type;
+    trabajoID employees.job_id%type;
+    salario employees.salary%type;
+    comision employees.commission_pct%type;
+    adminID employees.manager_id%type;
+    deptoID employees.department_id%type;
+    cursor emp is
+        select
+            employee_id,
+            first_name,
+            last_name,
+            email,
+            phone_number,
+            hire_date,
+            job_id,
+            salary,
+            commission_pct,
+            manager_id,
+            department_id
+        from employees;
+begin
+    open emp;
+        loop
+            fetch emp into empID, nombre, apellido, correo, telefono, fechaContratacion, trabajoID, salario, comision, adminID, deptoID;
+            --update employees_copia set employee_id = empID, first_name = nombre, last_name = apellido, email = correo, phone_number = telefono, hire_date = fechaContratacion, job_id = trabajoID, salary = salario, commission_pct = comision, manager_id = adminID, department_id = deptoID;
+
+            insert into employees_copia (employee_id, first_name, last_name, email, phone_number, hire_date, job_id, salary, commission_pct, manager_id, department_id)
+                values (empID, nombre, apellido, correo, telefono, fechaContratacion, trabajoID, salario, comision, adminID, deptoID);
+            
+            exit when emp%notfound;
+        end loop;
+    close emp;
+end;
+
+execute rellenador;
